@@ -1,0 +1,58 @@
+name: validate
+
+# Desired-state checks (ADR-0016): secrets scan, every kustomization renders,
+# schemas validate, and overlays reference container images by digest only.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    env:
+      KUSTOMIZE: registry.k8s.io/kustomize/kustomize@sha256:429eda4a1c76a7de458d0c4ca3ded9b5d764899ff6bdaeccc1d98b1b6ee873e4
+      KUBECONFORM: ghcr.io/yannh/kubeconform@sha256:faffaf43f95aa6425306e1ab8d6fcad72acb9049158f38e574c085ea1ec0f64e
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Gitleaks
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f detect --source /repo --no-git --redact
+
+      - name: Render every kustomization and validate schemas
+        run: |
+          set -euo pipefail
+          find . -name kustomization.yaml -not -path './.git/*' -not -path '*/components/*' | sort > dirs.txt
+          if [ ! -s dirs.txt ]; then echo "no kustomizations yet"; exit 0; fi
+          mkdir -p rendered
+          while read -r k <&3; do
+            d=$(dirname "$k"); out="rendered/$(echo "${d#./}" | tr '/' '_').yaml"
+            echo "::group::$d"
+            docker run --rm -v "$PWD:/w" -w /w "$KUSTOMIZE" build "$d" > "$out"
+            docker run --rm -v "$PWD:/w" -w /w "$KUBECONFORM" -strict -summary -ignore-missing-schemas "$out"
+            echo "::endgroup::"
+          done 3< dirs.txt
+
+      - name: Argo CD Application manifests parse
+        run: |
+          set -euo pipefail
+          if [ -d clusters ]; then
+            docker run --rm -v "$PWD:/w" -w /w "$KUBECONFORM" -strict -summary -ignore-missing-schemas clusters
+          fi
+
+      - name: Overlays reference images by digest only
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          bad=0
+          for f in rendered/*overlays*.yaml; do
+            n=$(grep -cE '^\s*image:' "$f" || true)
+            u=$(grep -E '^\s*image:' "$f" | grep -vc '@sha256:' || true)
+            echo "$f: images=$n not-digest=$u"
+            if [ "$u" != "0" ]; then grep -E '^\s*image:' "$f" | grep -v '@sha256:'; bad=1; fi
+          done
+          exit "$bad"
