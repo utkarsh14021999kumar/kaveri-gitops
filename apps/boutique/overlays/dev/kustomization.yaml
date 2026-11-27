@@ -38,7 +38,7 @@ images:
     digest: sha256:816fbc274eccb55d51c218c5d69731e694fec076cf3bc6c784d9741b2db60369
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend
     newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/frontend
-    digest: sha256:0b6b06053d67536a36dcf6fb9e7aee598a786a77824ad21a8aaccef3f7722ac2
+    newTag: latest
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/paymentservice
     newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/paymentservice
     digest: sha256:dbd8eca2731b6e15f5a3974e87612e67b3a5227830454d0a6f44f5e5e73b43a4
