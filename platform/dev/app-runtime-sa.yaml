@@ -1,0 +1,8 @@
+# Workload Identity (2.17): bound to the GSA by Terraform (workload-identity.tf).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-runtime
+  namespace: kaveri-dev
+  annotations:
+    iam.gke.io/gcp-service-account: kaveri-dev-app-runtime@vibrant-chain-514216-p4.iam.gserviceaccount.com

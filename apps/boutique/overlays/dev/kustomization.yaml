@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# DEV desired state for Online Boutique (ADR-0016). Digests from kaveri-boutique CI (release-digests.json).
+namespace: kaveri-dev
+resources:
+  - ../../base
+components:
+  - ../../components/without-loadgenerator
+patches:
+  # No public L4 load balancer in DEV; ingress arrives with Gateway API (2.18).
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: frontend-external
+images:
+  # third-party image pinned by digest (not built by our CI; mirror tracked in #79): busybox:1.38.0@sha256:dc2d74b28e4cf8984fa52af1f39bc7c3d9c73760b41a74d629f5d11b1ab28616
+  - name: busybox
+    digest: sha256:dc2d74b28e4cf8984fa52af1f39bc7c3d9c73760b41a74d629f5d11b1ab28616
+  # third-party image pinned by digest (not built by our CI; mirror tracked in #79): redis:alpine
+  - name: redis
+    digest: sha256:5af80107c1eeecb484a2269b80a26d12bfa6521787da4663bd9f19f60a163483
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/adservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/adservice
+    digest: sha256:7924c3211b0fb34908a9fdd6b6dbe7a1f15d98fdf1bca1ee119d03f62c7d47a0
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/cartservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/cartservice
+    digest: sha256:665d0a1342988b3d44aa91260b0f761fe5af85a7733103611a2c5c0c841b6a0e
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/checkoutservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/checkoutservice
+    digest: sha256:a7ee6ea27bb3c7929f628293eedf47b96461a069a0115f2cf929edf58e9bfc1b
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/currencyservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/currencyservice
+    digest: sha256:0707f81f5912502538a5844607a4c865e530bf3a08a65702f36e05c87c16191f
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/emailservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/emailservice
+    digest: sha256:816fbc274eccb55d51c218c5d69731e694fec076cf3bc6c784d9741b2db60369
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/frontend
+    digest: sha256:0b6b06053d67536a36dcf6fb9e7aee598a786a77824ad21a8aaccef3f7722ac2
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/paymentservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/paymentservice
+    digest: sha256:dbd8eca2731b6e15f5a3974e87612e67b3a5227830454d0a6f44f5e5e73b43a4
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/productcatalogservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/productcatalogservice
+    digest: sha256:66a1a4e2168bab99641e2a36eb41dacde81659ce0aed4243d3bb4da2519dc9c6
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/recommendationservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/recommendationservice
+    digest: sha256:a2701bd1083fdf850d4860e4f99f360397bd06490cee851c17d6d6d52c142a8a
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
+    newName: asia-south1-docker.pkg.dev/vibrant-chain-514216-p4/kaveri-dev-docker/shippingservice
+    digest: sha256:73f77972ede400f231d20d9d93b3f6c80ee187abb72a5516676cdbdaf2fed0ee

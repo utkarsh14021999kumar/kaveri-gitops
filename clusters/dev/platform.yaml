@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kaveri-dev-platform
+  namespace: argocd
+spec:
+  project: kaveri
+  source:
+    repoURL: https://github.com/utkarsh14021999kumar/kaveri-gitops.git
+    targetRevision: main
+    path: platform/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kaveri-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
